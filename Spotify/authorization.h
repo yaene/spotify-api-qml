@@ -1,6 +1,6 @@
 #pragma once
-#include <qtmetamacros.h>
 
+#include <QAbstractOAuth>
 #include <QtNetwork/QRestAccessManager>
 #include <QtNetworkAuth/QOAuth2AuthorizationCodeFlow>
 #include <QtNetworkAuth/QOAuthHttpServerReplyHandler>
@@ -13,7 +13,7 @@ class Authorization : public QObject {
                              const QSet<QByteArray>& requestedScopeTokens);
  signals:
   void granted(const QString& accessToken);
-  void error(const QString& msg);
+  void failed(const QAbstractOAuth::Error& error);
 
  private:
   QOAuth2AuthorizationCodeFlow oauth_;

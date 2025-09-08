@@ -3,6 +3,7 @@
 #include <QtNetworkAuth/qoauthhttpserverreplyhandler.h>
 
 #include <QFile>
+#include <QMetaEnum>
 #include <QSslCertificate>
 #include <QSslConfiguration>
 #include <QSslKey>
@@ -24,14 +25,15 @@ Authorization::Authorization(QObject* parent, quint16 port)
 
 void Authorization::authorize(const QString& clientId,
                               const QSet<QByteArray>& requestedScopeTokens) {
-  // oauth_.setRequestedScopeTokens(
-  //     {"user-read-playback-state", "user-modify-playback-state",
-  //      "playlist-read-private", "user-library-read"});
   oauth_.setRequestedScopeTokens(requestedScopeTokens);
   oauth_.setClientIdentifier(clientId);
 
   QObject::connect(&oauth_, &QAbstractOAuth::granted, this,
                    [this] { emit granted(oauth_.token()); });
+
+  QObject::connect(
+      &oauth_, &QAbstractOAuth::requestFailed, this,
+      [this](const QAbstractOAuth::Error error) { emit failed(error); });
   connect(&oauth_, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, this,
           &QDesktopServices::openUrl);
   if (handler_->isListening()) {

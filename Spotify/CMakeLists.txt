@@ -6,11 +6,10 @@ qt_add_qml_module(
   1.0
   SOURCES
   authorization.cpp
+  spotify-api.cpp
   QML_FILES)
 
-find_package(Qt6 REQUIRED COMPONENTS NetworkAuth Network Core Gui)
+find_package(Qt6 REQUIRED COMPONENTS NetworkAuth Network Core Gui Quick)
 target_link_libraries(spotify PRIVATE Qt6::NetworkAuth Qt6::Network)
 
-qt_add_executable(test main.cpp)
-
-target_link_libraries(test PRIVATE Qt6::Core Qt6::NetworkAuth Qt6::Gui spotify)
+add_subdirectory(test)
