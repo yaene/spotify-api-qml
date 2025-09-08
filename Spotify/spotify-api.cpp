@@ -14,17 +14,26 @@ SpotifyApi::SpotifyApi(QObject *parent)
   api_.setBaseUrl(QUrl("https://api.spotify.com/v1"));
 }
 
-void SpotifyApi::authorize(const QString &clientId, const QStringList &scopes) {
+QSet<QByteArray> getScopeSet(const QStringList &scope) {
   QSet<QByteArray> scopeSet;
-  for (const QString &s : scopes) {
+  for (const QString &s : scope) {
     scopeSet.insert(s.toUtf8());
   }
-  authorization_->authorize(clientId, scopeSet);
+  return scopeSet;
+}
+void SpotifyApi::authorize() {
+  authorization_->authorize(clientId_, getScopeSet(scope_));
+}
+
+void SpotifyApi::init() {
+  qInfo() << "client: " << clientId_ << "scope: " << scope_[0];
+  authorization_->refreshTokens(clientId_, getScopeSet(scope_));
 }
 
 bool SpotifyApi::isAuthorized() const { return authorized_; }
 
 void SpotifyApi::onAuthGranted(const QString &token) {
+  qInfo() << "On auth granted: " << token;
   accessToken_ = token;
   api_.setBearerToken(token.toUtf8());
   if (!authorized_) {
@@ -71,6 +80,7 @@ void SpotifyApi::onAuthFailed(const QAbstractOAuth::Error &error) {
     default:
       errorStr = "UnknownError";
   }
+  qInfo() << errorStr;
   emit authorizationFailed(errorStr);
 }
 
@@ -89,4 +99,18 @@ void SpotifyApi::onCurrentUserReply(QNetworkReply *reply) {
     emit currentUserChanged();
   }
   reply->deleteLater();
+}
+void SpotifyApi::setClientId(const QString &id) {
+  if (clientId_ != id) {
+    clientId_ = id;
+    emit clientIdChanged();
+    // Optionally: trigger auth refresh if both clientId_ and scope_ are set
+  }
+}
+void SpotifyApi::setScope(const QStringList &scope) {
+  if (scope_ != scope) {
+    scope_ = scope;
+    emit scopeChanged();
+    // Optionally: trigger auth refresh if both are set
+  }
 }

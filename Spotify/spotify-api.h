@@ -19,22 +19,30 @@ class SpotifyApi : public QObject {
   Q_OBJECT
   Q_PROPERTY(bool authorized READ isAuthorized NOTIFY authorizedChanged)
   Q_PROPERTY(QVariantMap currentUser READ currentUser NOTIFY currentUserChanged)
+  Q_PROPERTY(QString clientId READ clientId WRITE setClientId NOTIFY
+                 clientIdChanged REQUIRED)
+  Q_PROPERTY(QStringList scope READ scope WRITE setScope NOTIFY scopeChanged)
   QML_ELEMENT
-  QML_SINGLETON
  public:
   explicit SpotifyApi(QObject *parent = nullptr);
 
-  Q_INVOKABLE void authorize(const QString &clientId,
-                             const QStringList &scopes);
+  Q_INVOKABLE void init();
+  Q_INVOKABLE void authorize();
   Q_INVOKABLE void updateCurrentUser();
 
   bool isAuthorized() const;
   QVariantMap currentUser() const;
+  QString clientId() const { return clientId_; }
+  void setClientId(const QString &id);
+  QStringList scope() const { return scope_; }
+  void setScope(const QStringList &scope);
 
  signals:
   void authorizedChanged();
   void authorizationFailed(const QString &msg);
   void currentUserChanged();
+  void clientIdChanged();
+  void scopeChanged();
 
  private slots:
   void onCurrentUserReply(QNetworkReply *reply);
@@ -48,4 +56,6 @@ class SpotifyApi : public QObject {
   QString accessToken_;
   QVariantMap currentUser_;
   bool authorized_ = false;
+  QString clientId_;
+  QStringList scope_;
 };
