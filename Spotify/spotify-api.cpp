@@ -2,8 +2,11 @@
 
 #include <QtNetworkAuth/qabstractoauth.h>
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include "./playlist.h"
 
 SpotifyApi::SpotifyApi(QObject *parent)
     : QObject(parent), authorization_(new Authorization(this)) {
@@ -104,13 +107,61 @@ void SpotifyApi::setClientId(const QString &id) {
   if (clientId_ != id) {
     clientId_ = id;
     emit clientIdChanged();
-    // Optionally: trigger auth refresh if both clientId_ and scope_ are set
   }
 }
 void SpotifyApi::setScope(const QStringList &scope) {
   if (scope_ != scope) {
     scope_ = scope;
     emit scopeChanged();
-    // Optionally: trigger auth refresh if both are set
   }
+}
+
+QList<Playlist *> SpotifyApi::playlists() { return playlists_; }
+
+void SpotifyApi::updatePlaylists() {
+  // Example Spotify Web API endpoint for current user's playlists
+  QUrl url("https://api.spotify.com/v1/me/playlists");
+  QNetworkRequest request(url);
+  request.setRawHeader("Authorization", "Bearer " + accessToken_.toUtf8());
+
+  QNetworkReply *reply = netw_.get(request);
+  connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+    // Clear previous playlists and ensure proper deletion
+    qDeleteAll(playlists_);
+    playlists_.clear();
+
+    if (reply->error()) {
+      qWarning() << "Failed to fetch playlists:" << reply->errorString();
+      emit playlistsChanged();
+      reply->deleteLater();
+      return;
+    }
+
+    QByteArray response = reply->readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(response);
+    if (doc.isObject()) {
+      QJsonArray items = doc.object().value("items").toArray();
+      for (const QJsonValue &value : items) {
+        const QJsonObject obj = value.toObject();
+        QString id = obj["id"].toString();
+        QString name = obj["name"].toString();
+        QString owner =
+            obj["owner"].toObject().value("display_name").toString();
+        QUrl image_url;
+        QJsonArray images = obj["images"].toArray();
+        if (!images.isEmpty()) {
+          image_url = QUrl(images.at(0).toObject().value("url").toString());
+        }
+        int track_count = obj["tracks"].toObject().value("total").toInt();
+
+        auto *playlist = new Playlist(id, name, owner, image_url, track_count,
+                                      &netw_, &api_, this);
+
+        playlists_.append(playlist);
+      }
+    }
+
+    emit playlistsChanged();
+    reply->deleteLater();
+  });
 }

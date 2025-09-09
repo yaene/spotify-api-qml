@@ -14,6 +14,7 @@
 #include <QVariantMap>
 
 #include "./authorization.h"
+#include "./playlist.h"
 
 class SpotifyApi : public QObject {
   Q_OBJECT
@@ -22,13 +23,16 @@ class SpotifyApi : public QObject {
   Q_PROPERTY(QString clientId READ clientId WRITE setClientId NOTIFY
                  clientIdChanged REQUIRED)
   Q_PROPERTY(QStringList scope READ scope WRITE setScope NOTIFY scopeChanged)
+  Q_PROPERTY(QList<Playlist *> playlists READ playlists NOTIFY playlistsChanged)
   QML_ELEMENT
+
  public:
   explicit SpotifyApi(QObject *parent = nullptr);
 
   Q_INVOKABLE void init();
   Q_INVOKABLE void authorize();
   Q_INVOKABLE void updateCurrentUser();
+  Q_INVOKABLE void updatePlaylists();
 
   bool isAuthorized() const;
   QVariantMap currentUser() const;
@@ -36,6 +40,7 @@ class SpotifyApi : public QObject {
   void setClientId(const QString &id);
   QStringList scope() const { return scope_; }
   void setScope(const QStringList &scope);
+  QList<Playlist *> playlists();
 
  signals:
   void authorizedChanged();
@@ -43,6 +48,7 @@ class SpotifyApi : public QObject {
   void currentUserChanged();
   void clientIdChanged();
   void scopeChanged();
+  void playlistsChanged();
 
  private slots:
   void onCurrentUserReply(QNetworkReply *reply);
@@ -58,4 +64,5 @@ class SpotifyApi : public QObject {
   bool authorized_ = false;
   QString clientId_;
   QStringList scope_;
+  QList<Playlist *> playlists_;
 };
