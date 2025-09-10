@@ -1,13 +1,14 @@
 
 #include "playlist.h"
 
-#include <qnetworkaccessmanager.h>
-#include <qnetworkrequestfactory.h>
-
 #include <QDebug>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QNetworkAccessManager>
+#include <QNetworkRequestFactory>
+
+using namespace Qt::StringLiterals;
 
 Playlist::Playlist(const QString& id, const QString& name, const QString& owner,
                    const QUrl& imageUrl, int trackCount,
@@ -32,6 +33,15 @@ void Playlist::fetchTracks() {
   QNetworkReply* reply = m_netw->get(m_api->createRequest(url));
   connect(reply, &QNetworkReply::finished, this,
           [this, reply]() { onTracksReply(reply); });
+}
+
+void Playlist::play() {
+  auto url = QString("me/player/play");
+  QJsonObject json;
+  json["context_uri"] = u"spotify:playlist:%1"_s.arg(m_id);
+  QJsonDocument doc(json);
+
+  m_netw->put(m_api->createRequest(url), doc.toJson());
 }
 
 void Playlist::onTracksReply(QNetworkReply* reply) {

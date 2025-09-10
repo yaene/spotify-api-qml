@@ -36,6 +36,7 @@ class Playlist : public QObject {
   bool tracksLoading() const { return m_tracksLoading; }
 
   Q_INVOKABLE void fetchTracks();
+  Q_INVOKABLE void play();
 
  signals:
   void tracksChanged();
