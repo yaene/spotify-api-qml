@@ -35,17 +35,17 @@ class Playlist : public QObject {
   QStringList tracks() const { return m_tracks; }
   bool tracksLoading() const { return m_tracksLoading; }
 
-  Q_INVOKABLE void fetchTracks();
-  Q_INVOKABLE void play();
+  Q_INVOKABLE virtual void fetchTracks();
+  Q_INVOKABLE virtual void play();
 
  signals:
   void tracksChanged();
   void tracksLoadingChanged();
 
- private slots:
+ protected slots:
   void onTracksReply(QNetworkReply* reply);
 
- private:
+ protected:
   QString m_id;
   QString m_name;
   QString m_owner;
@@ -55,4 +55,6 @@ class Playlist : public QObject {
   bool m_tracksLoading = false;
   QNetworkAccessManager* m_netw;
   QNetworkRequestFactory* m_api;
+
+ private:
 };

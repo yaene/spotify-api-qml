@@ -62,8 +62,8 @@ void Playlist::onTracksReply(QNetworkReply* reply) {
     QJsonArray items = obj["items"].toArray();
     for (const QJsonValue& val : items) {
       QJsonObject trackObj = val.toObject().value("track").toObject();
-      QString trackName = trackObj.value("name").toString();
-      newTracks.push_back(trackName);
+      QString trackId = trackObj.value("id").toString();
+      newTracks.push_back(trackId);
     }
   }
 

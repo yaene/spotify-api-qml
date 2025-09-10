@@ -8,6 +8,7 @@ qt_add_qml_module(
   authorization.cpp
   spotify-api.cpp
   playlist.cpp
+  likedsongs.cpp
   QML_FILES)
 
 find_package(Qt6 REQUIRED COMPONENTS NetworkAuth Network Core Gui Quick)

@@ -1,4 +1,4 @@
-#include "./spotify-api.h"
+#include "spotify-api.h"
 
 #include <QtNetworkAuth/qabstractoauth.h>
 
@@ -6,6 +6,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "./likedsongs.h"
 #include "./playlist.h"
 
 SpotifyApi::SpotifyApi(QObject *parent)
@@ -129,6 +130,8 @@ void SpotifyApi::updatePlaylists() {
     // Clear previous playlists and ensure proper deletion
     qDeleteAll(playlists_);
     playlists_.clear();
+    playlists_.append(new LikedSongsPlaylist(currentUser_["id"].toString(),
+                                             &netw_, &api_, this));
 
     if (reply->error()) {
       qWarning() << "Failed to fetch playlists:" << reply->errorString();
